@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <AssemblyName>ExampleMod</AssemblyName>
+    <RootNamespace>ExampleMod</RootNamespace>
+    <Nullable>disable</Nullable>
+    <LangVersion>8.0</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ServerAdminSimulator.ModSDK\ServerAdminSimulator.ModSDK.csproj" />
+  </ItemGroup>
+
+  <!--
+    Nach dem Build die DLL automatisch in den Mods-Ordner kopieren.
+    Passe den Pfad an dein System an.
+  -->
+  <Target Name="CopyToMods" AfterTargets="Build">
+    <PropertyGroup>
+      <ModsFolder>$(APPDATA)\..\LocalLow\Ice-Phoenix\ServerAdminSimulator\Mods\</ModsFolder>
+    </PropertyGroup>
+    <MakeDir Directories="$(ModsFolder)" />
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll"
+          DestinationFolder="$(ModsFolder)"
+          SkipUnchangedFiles="true" />
+    <Message Text="&#x2714; $(AssemblyName).dll &#x2192; $(ModsFolder)" Importance="high" />
+  </Target>
+</Project>
