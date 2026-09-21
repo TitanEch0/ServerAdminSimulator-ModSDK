@@ -121,7 +121,7 @@ Extend `ModGameHooks` and override only what you need — all methods are no-ops
 | `OnHackSucceeded(reward, gc)` | A hack attempt succeeds |
 | `OnHackFailed(gc)` | A hack attempt fails |
 | `OnServerPurchased(chassisName, gc)` | Player purchases a new server |
-| `OnComponentUpgraded(componentType, gc)` | A CPU / RAM / Network card is upgraded |
+| `OnComponentUpgraded(componentType, gc)` | A CPU / RAM / Network / Storage card is upgraded |
 | `OnReputationTierChanged(newTier, gc)` | Player's reputation tier changes |
 | `OnDatacenterExpanded(newLevel, gc)` | Datacenter capacity is expanded |
 | `OnGameOver(gc)` | Game-over condition is reached |

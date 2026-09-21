@@ -4,6 +4,26 @@ All notable changes to the Server-Admin Simulator Modding SDK are documented her
 
 ---
 
+## v1.1.0 (2026-09-21)
+
+Adds SDK support for the game's Storage component type and the new long-duration hosting contract categories (game update 1.1.8).
+
+### API v1 — Core Content
+- `ModComponentData.ComponentType` now also accepts `"Storage"`
+- `ModComponentData.Vendor` — fictional hardware vendor/brand shown next to the display name (purely cosmetic)
+- `ModContractData.Category` now also accepts `"WebsiteHosting"` and `"SaaSHosting"`
+- `ModContractData.RequiredStorageGB` — minimum storage in GB the assigned server must provide
+- `ModServerData.MaxStorageGB` — maximum storage in GB a chassis supports (0 = no cap)
+- `ModServerData.DefaultStorageAssetName` — default Storage component pre-installed on a chassis
+
+### Infrastructure
+- `ContractConfig` stub — added `requiredStorageGB` field and `WebsiteHosting`/`SaaSHosting` to the `ContractCategory` enum
+- `GameController` stub — added `SwapStorage(server)` and `MoveContract(contract, newServer)`
+- `RandomEventSystem` stub — added `HasActiveStorageFault(serverId)`
+- `ServerData` stub — added `MaxStorageGB` and `StorageUsagePercent`
+
+---
+
 ## v1.0.0 (2026-05-15)
 
 Initial public release.

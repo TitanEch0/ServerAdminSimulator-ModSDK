@@ -24,6 +24,10 @@ public class GameController
     public static bool IsDemoMode { get; set; }
     /// <summary>Player-chosen display name for the datacenter.</summary>
     public string DatacenterName  { get; }
+    /// <summary>Repairs an active storage fault on the given server by swapping its drive, spending the repair cost. No-op if the server has no active storage fault.</summary>
+    public void SwapStorage(ServerData server) { }
+    /// <summary>Moves an active contract to a different server, freeing its old allocation and reserving capacity on the new one. Returns false if the new server lacks capacity or is offline.</summary>
+    public bool MoveContract(ContractData contract, ServerData newServer) { return false; }
 }
 
 /// <summary>Provides read/write access to the player's economy.</summary>
@@ -116,6 +120,10 @@ public class ServerData
     public string displayName;
     /// <summary>True when the server is powered on and accepting contracts.</summary>
     public bool IsOnline;
+    /// <summary>Maximum storage in GB provided by this server's installed storage component (0 = no storage installed).</summary>
+    public int MaxStorageGB { get; }
+    /// <summary>Current storage usage as a percentage (0–100) of MaxStorageGB.</summary>
+    public float StorageUsagePercent { get; }
 }
 
 /// <summary>A rack installed in the datacenter.</summary>
