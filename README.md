@@ -88,7 +88,7 @@ If you see `"was built against an incompatible IServerAdminMod copy ... loading 
 | Method | API | Description |
 |---|:---:|---|
 | `GetManifest()` | v1 | Mod metadata — name, version, author, dependencies |
-| `GetComponents()` | v1 | CPU, RAM, and Network upgrade cards |
+| `GetComponents()` | v1 | CPU, RAM, Network, and Storage upgrade cards |
 | `GetContracts()` | v1 | Client contracts shown on the contract board |
 | `GetRacks()` | v1 | Server rack chassis types |
 | `GetServers()` | v1 | Server form factors / chassis |
