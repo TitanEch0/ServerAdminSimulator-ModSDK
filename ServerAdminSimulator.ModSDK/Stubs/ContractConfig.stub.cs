@@ -25,6 +25,8 @@ public class ContractConfig
     public ContractCategory category;
     /// <summary>"Standard","Tough","Friendly","Strict","Desperate"</summary>
     public ContractPersonality personality;
+    /// <summary>Minimum storage in GB the assigned server must provide (0 = no SLA on storage).</summary>
+    public int requiredStorageGB;
 }
 
 /// <summary>Contract workload category affecting income scaling and SLA behaviour.</summary>
@@ -39,7 +41,11 @@ public enum ContractCategory
     /// <summary>Live video transcoding with strict bandwidth requirements.</summary>
     VideoStreaming,
     /// <summary>Government contracts with strict uptime SLAs and high penalties.</summary>
-    Government
+    Government,
+    /// <summary>Long-duration, storage-heavy website hosting.</summary>
+    WebsiteHosting,
+    /// <summary>Long-duration SaaS hosting, balanced CPU/RAM with heavy storage.</summary>
+    SaaSHosting
 }
 
 /// <summary>Client personality affecting negotiation chance and cancellation tolerance.</summary>
