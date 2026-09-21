@@ -12,6 +12,8 @@ public class ModComponentData
     public string DisplayName           = "";
     /// <summary>"CPU", "RAM" or "Network"</summary>
     public string ComponentType         = "CPU";
+    /// <summary>Fictional hardware vendor/brand shown next to the display name (e.g. "Ambel", "Corvex"). Purely cosmetic.</summary>
+    public string Vendor = "";
     /// <summary>Component capacity: cores for CPU, GB for RAM, Mbps for Network.</summary>
     public int    Value                 = 4;
     /// <summary>Power cost added to the server's energy bill per simulation tick.</summary>
@@ -45,6 +47,8 @@ public class ModContractData
     public float  MinRepScore           = 0f;
     /// <summary>"General","AITraining","CryptoMining","VideoStreaming","Government"</summary>
     public string Category              = "General";
+    /// <summary>Minimum storage in GB the assigned server must provide (0 = no storage requirement).</summary>
+    public int RequiredStorageGB = 0;
     /// <summary>"Standard","Tough","Friendly","Strict","Desperate"</summary>
     public string Personality           = "Standard";
     /// <summary>Loyal clients return with follow-up contracts after successful completion.</summary>
@@ -97,6 +101,10 @@ public class ModServerData
     public int    MaxRamGB                = 0;
     /// <summary>Maximum bandwidth in Mbps this chassis supports (0 = no cap).</summary>
     public int    MaxBandwidthMbps        = 0;
+    /// <summary>Maximum storage in GB this chassis supports (0 = no cap).</summary>
+    public int MaxStorageGB = 0;
+    /// <summary>AssetName of the default Storage component pre-installed on this chassis.</summary>
+    public string DefaultStorageAssetName = "";
     /// <summary>AssetName of the default CPU component pre-installed on this chassis.</summary>
     public string DefaultCpuAssetName     = "CPU_T1";
     /// <summary>AssetName of the default RAM component pre-installed on this chassis.</summary>
