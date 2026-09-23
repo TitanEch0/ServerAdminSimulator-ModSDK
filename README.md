@@ -157,6 +157,25 @@ and `Chassis_Workstation`. When upgrading a server, the player now chooses from 
 that type that's currently compatible with the server's chassis — not just a single fixed next
 tier — so this field is what actually differentiates one component from another beyond raw stats.
 
+### Chassis numeric caps
+
+Independently of `CompatibleChassisTypes`, every chassis also enforces a hard numeric ceiling on
+`ModComponentData.Value` per component type. A component whose `Value` exceeds the target
+chassis's cap for that type is silently left out of the upgrade picker for that chassis — this is
+not an error and won't log anything, so if your components "don't show up," check this table first:
+
+| Chassis AssetName     | ServerType label | Max CPU (cores) | Max RAM (GB) | Max Network (Mbps) | Max Storage (GB) |
+|------------------------|-------------------|-----------------:|--------------:|---------------------:|--------------------:|
+| `Chassis_Basic`        | 1U Server          |                8 |             16 |                   500 |                2,000 |
+| `Chassis_T1`           | 1U Server          |                8 |             16 |                   500 |                2,000 |
+| `Chassis_T2`           | 2U Server          |               32 |             32 |                 1,000 |                8,000 |
+| `Chassis_Workstation`  | 2U Server          |               32 |             32 |                 1,000 |                8,000 |
+| `Chassis_T3`           | 4U Server Pro      |              128 |          1,024 |               100,000 |               16,000 |
+
+A component only needs to clear the cap of whichever chassis it should actually be installed on —
+e.g. `Value = 64` for a RAM component works fine on `Chassis_T3` (cap 1,024) but will never appear
+as an option on `Chassis_Basic` (cap 16), regardless of what `CompatibleChassisTypes` says.
+
 ---
 
 ## Repository & Issues
