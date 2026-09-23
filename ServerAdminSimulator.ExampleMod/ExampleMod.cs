@@ -42,21 +42,22 @@ public class ExampleMod : IServerAdminMod
     /// <summary>
     /// CPU / RAM / Network upgrade cards added by this mod.
     ///
-    /// "ExCPU_T1" is an 8-core upgrade card that slots into any T1 CPU socket.
-    /// Setting <see cref="ModComponentData.UpgradesFromAssetName"/> chains it to
-    /// the base game CPU_T1 so players see it as the next step in the upgrade tree.
+    /// "ExCPU_T1" is an 8-core upgrade card. Setting
+    /// <see cref="ModComponentData.CompatibleChassisTypes"/> restricts it to the two
+    /// larger base-game chassis — players upgrading a Chassis_Basic or Chassis_T1 server
+    /// won't see it offered as an option at all, only Chassis_T2/T3 owners will.
     /// </summary>
     public IEnumerable<ModComponentData> GetComponents() => new[]
     {
         new ModComponentData
         {
-            AssetName             = "ExCPU_T1",
-            DisplayName           = "ExCore 8 Pro",
-            ComponentType         = "CPU",
-            Value                 = 8,
-            PowerCostPerTick      = 0.04f,
-            UpgradeCost           = 750f,
-            UpgradesFromAssetName = "CPU_T1",
+            AssetName              = "ExCPU_T1",
+            DisplayName            = "ExCore 8 Pro",
+            ComponentType          = "CPU",
+            Value                  = 8,
+            PowerCostPerTick       = 0.04f,
+            UpgradeCost            = 750f,
+            CompatibleChassisTypes = "Chassis_T2,Chassis_T3",
         },
     };
 
