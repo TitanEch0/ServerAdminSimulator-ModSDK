@@ -4,8 +4,8 @@ Official SDK for creating mods for **Server-Admin Simulator** by Ice-Phoenix.
 Reference `ServerAdminSimulator.ModSDK.dll` in your mod project, implement `IServerAdminMod`,
 and drop the compiled DLL into the game's Mods folder.
 
-> **Current API version:** v3.2  
-> **MinGameVersion:** `1.1.4`
+> **Current API version:** v3.3  
+> **MinGameVersion:** `1.2.0`
 
 ---
 
@@ -43,7 +43,7 @@ public class MyMod : IServerAdminMod
         Name           = "My Mod",
         Version        = "1.0.0",
         Author         = "You",
-        MinGameVersion = "1.1.4",
+        MinGameVersion = "1.2.0",
     };
 
     public IEnumerable<ModContractData> GetContracts() => new[]
@@ -88,7 +88,7 @@ If you see `"was built against an incompatible IServerAdminMod copy ... loading 
 | Method | API | Description |
 |---|:---:|---|
 | `GetManifest()` | v1 | Mod metadata — name, version, author, dependencies |
-| `GetComponents()` | v1 | CPU, RAM, Network, and Storage upgrade cards |
+| `GetComponents()` | v1 | CPU, RAM, Network, and Storage upgrade cards *(can be restricted to specific chassis — see [Chassis Compatibility](#chassis-compatibility))* |
 | `GetContracts()` | v1 | Client contracts shown on the contract board |
 | `GetRacks()` | v1 | Server rack chassis types |
 | `GetServers()` | v1 | Server form factors / chassis |
@@ -127,6 +127,35 @@ Extend `ModGameHooks` and override only what you need — all methods are no-ops
 | `OnGameOver(gc)` | Game-over condition is reached |
 | `OnGameSaved(slot)` | Game is saved to a slot |
 | `OnGameLoaded(slot)` | A save file is loaded |
+
+---
+
+## Chassis Compatibility
+
+*Added in v1.2.0 / API v3.3.*
+
+By default, a component you return from `GetComponents()` can be installed on any server chassis
+(subject to the chassis's own numeric caps — max CPU cores, RAM, etc.). Set
+`ModComponentData.CompatibleChassisTypes` to restrict it to specific chassis instead:
+
+```csharp
+new ModComponentData
+{
+    AssetName              = "MyCPU_Elite",
+    DisplayName            = "Elite CPU",
+    ComponentType          = "CPU",
+    Value                  = 16,
+    UpgradeCost            = 1200f,
+    // Comma-separated chassis AssetNames — NOT the display ServerType label.
+    // Empty/null (the default) = compatible with every chassis.
+    CompatibleChassisTypes = "Chassis_T2,Chassis_T3",
+}
+```
+
+The base game's chassis AssetNames are `Chassis_Basic`, `Chassis_T1`, `Chassis_T2`, `Chassis_T3`,
+and `Chassis_Workstation`. When upgrading a server, the player now chooses from every component of
+that type that's currently compatible with the server's chassis — not just a single fixed next
+tier — so this field is what actually differentiates one component from another beyond raw stats.
 
 ---
 
