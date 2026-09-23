@@ -4,6 +4,23 @@ All notable changes to the Server-Admin Simulator Modding SDK are documented her
 
 ---
 
+## v1.2.0 (2026-09-23)
+
+Adds per-chassis compatibility restrictions for hardware components, and replaces the single
+linear upgrade chain with a full choice of every currently compatible component (game update
+covering server upgrade choice).
+
+### API v1 — Core Content
+- `ModComponentData.CompatibleChassisTypes` — comma-separated list of chassis AssetNames this
+  component may be installed in. Null/empty = compatible with every chassis (fully backward
+  compatible with existing mods, which leave this unset).
+- Upgrading a server component now lets the player pick from every component of that type
+  compatible with the server's chassis (by `CompatibleChassisTypes` and the chassis's numeric
+  caps), not just the next tier in `UpgradesFromAssetName`. That field is still supported for
+  display/ordering purposes.
+
+---
+
 ## v1.1.0 (2026-09-21)
 
 Adds SDK support for the game's Storage component type and the new long-duration hosting contract categories (game update 1.1.8).

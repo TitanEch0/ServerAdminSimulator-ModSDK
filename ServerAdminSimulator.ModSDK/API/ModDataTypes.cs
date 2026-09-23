@@ -22,6 +22,11 @@ public class ModComponentData
     public float  UpgradeCost           = 500f;
     /// <summary>AssetName of the component this upgrades FROM. Null = root tier.</summary>
     public string UpgradesFromAssetName = null;
+    /// <summary>Comma-separated list of chassis AssetNames (ModServerData.AssetName — the unique chassis
+    /// identifier, NOT the display ServerType label) this component may be installed in, e.g.
+    /// "RackChassisElite,RackChassisPro". Null or empty = compatible with every chassis. Players choose from
+    /// all currently compatible components of a type when upgrading — this list is what "compatible" means.</summary>
+    public string CompatibleChassisTypes = null;
 }
 
 /// <summary>A client contract injected into the contract board by a mod.</summary>
