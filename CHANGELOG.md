@@ -4,6 +4,43 @@ All notable changes to the Server-Admin Simulator Modding SDK are documented her
 
 ---
 
+## v1.3.0 (2026-10-13)
+
+Adds mod support for the game's new hardware layer: mainboards, network switches and tower servers.
+Fully backward compatible - mods built against an older SDK keep loading unchanged.
+
+### API v4 - Hardware
+- New optional interface `IServerAdminModHardware` (implement it next to `IServerAdminMod`):
+  - `GetMotherboards()` - `ModMotherboardData`: generation (CPU socket / RAM type), sockets, PCIe slots, RAM slots,
+    drive connectors, fastest NIC, minimum chassis size class, price and power draw.
+  - `GetSwitchModels()` - `ModSwitchModelData`: ports, port speed, uplink capacity, price and power draw.
+- `ModServerData.IsTower` / `SizeClass` / `DriveBays` - free-standing tower chassis that stand on the data center
+  floor, and the size class / drive bays that decide which mainboards fit.
+- The game now also registers mod chassis and racks with its asset registry (saves can find them again) and gives mod
+  chassis their default CPU/RAM/Network/Storage components by asset name (`Default*AssetName`).
+- Games with mods that add boards/switches are bound to the exact mod set, like any other mod content.
+- Compatibility mode: `GetMotherboards()` / `GetSwitchModels()` work through the bridge as well.
+
+---
+
+## v1.2.1 (2026-09-25)
+
+Reverts the "free choice" upgrade behavior introduced in v1.2.0 — it let players upgrade into any
+compatible component regardless of value, which amounted to letting them downgrade a server. The
+API surface is unchanged; only the game's runtime behavior interpreting it reverts.
+
+### API v1 — Core Content
+- `GetComponents()` upgrades are chain-based again: a server always upgrades to the single next
+  tier named via `ModComponentData.UpgradesFromAssetName`, shown as one "Upgrade → NextTier ($cost)"
+  button — never a list to choose from. `CompatibleChassisTypes` and the chassis's numeric caps
+  still apply on top of the chain: if the chain-next tier doesn't fit a given chassis, that
+  server's Upgrade button shows "MAX" instead of continuing.
+- Chassis list grows to 7 with the base game's `Chassis_T1_5` and `Chassis_T2_5`, and the numeric
+  caps table for all chassis has been raised — see [Chassis Compatibility](README.md#chassis-compatibility)
+  in the README for current values.
+
+---
+
 ## v1.2.0 (2026-09-23)
 
 Adds per-chassis compatibility restrictions for hardware components, and replaces the single

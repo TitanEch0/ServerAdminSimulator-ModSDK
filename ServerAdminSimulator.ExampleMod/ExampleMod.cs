@@ -10,7 +10,7 @@ using System.Collections.Generic;
 /// Build output: ExampleMod.dll
 /// Drop it into: %APPDATA%\..\LocalLow\Ice-Phoenix\ServerAdminSimulator\Mods\
 /// </summary>
-public class ExampleMod : IServerAdminMod
+public class ExampleMod : IServerAdminMod, IServerAdminModHardware
 {
     // ─────────────────────────────────────────────────────────────────────────
     //  Manifest
@@ -42,21 +42,24 @@ public class ExampleMod : IServerAdminMod
     /// <summary>
     /// CPU / RAM / Network upgrade cards added by this mod.
     ///
-    /// "ExCPU_T1" is an 8-core upgrade card. Setting
-    /// <see cref="ModComponentData.CompatibleChassisTypes"/> restricts it to the two
-    /// larger base-game chassis — players upgrading a Chassis_Basic or Chassis_T1 server
-    /// won't see it offered as an option at all, only Chassis_T2/T3 owners will.
+    /// "ExCPU_T1" extends the base game's own CPU chain one tier further, via
+    /// <see cref="ModComponentData.UpgradesFromAssetName"/> — a server currently on the base
+    /// game's top CPU tier now shows a single "Upgrade → ExCore 64 Elite" button instead of "MAX".
+    /// <see cref="ModComponentData.CompatibleChassisTypes"/> additionally restricts that button
+    /// to the two larger base-game chassis — a Chassis_Basic or Chassis_T1 server still shows
+    /// "MAX" even once the chain reaches this tier, only Chassis_T2/T3 owners can reach it.
     /// </summary>
     public IEnumerable<ModComponentData> GetComponents() => new[]
     {
         new ModComponentData
         {
             AssetName              = "ExCPU_T1",
-            DisplayName            = "ExCore 8 Pro",
+            DisplayName            = "ExCore 64 Elite",
             ComponentType          = "CPU",
-            Value                  = 8,
-            PowerCostPerTick       = 0.04f,
-            UpgradeCost            = 750f,
+            Value                  = 64, // must exceed CPU_T10's 48 cores to be a real upgrade, and stay within Chassis_T2's 64-core cap to actually be reachable there
+            PowerCostPerTick       = 0.25f,
+            UpgradeCost            = 20000f,
+            UpgradesFromAssetName  = "CPU_T10", // base game's current top CPU tier — see the SDK README's "Component Upgrade Chains" section
             CompatibleChassisTypes = "Chassis_T2,Chassis_T3",
         },
     };
@@ -111,10 +114,73 @@ public class ExampleMod : IServerAdminMod
     };
 
     /// <summary>
-    /// No custom server chassis in this example.
+    /// A free-standing tower server (API v4): it stands on the data center floor instead of in a rack.
+    /// SizeClass 3 lets the larger mainboards fit; DriveBays = 6 gives room for a RAID array.
     /// Return <see cref="Array.Empty{T}"/> for any method your mod does not use.
     /// </summary>
-    public IEnumerable<ModServerData> GetServers() => Array.Empty<ModServerData>();
+    public IEnumerable<ModServerData> GetServers() => new[]
+    {
+        new ModServerData
+        {
+            AssetName              = "ExTower_Workhorse",
+            ServerType             = "Workhorse Tower",
+            Description            = "A sturdy tower for the server room floor - lots of drive bays.",
+            FormFactor             = 1,
+            PurchaseCost           = 6500f,
+            BasePowerCostPerTick   = 0.09f,
+            MaxTemperature         = 90,
+            MaxCpuCores            = 64,
+            MaxRamGB               = 96,
+            MaxBandwidthMbps       = 25000,
+            MaxStorageGB           = 8000,
+            DefaultCpuAssetName    = "CPU_T1",
+            DefaultRamAssetName    = "RAM_T1",
+            DefaultNetworkAssetName = "Net_T1",
+            IsTower                = true,
+            SizeClass              = 3,
+            DriveBays              = 6,
+        },
+    };
+
+    // ─────────────────────────────────────────────────────────────────────────
+    //  API v4 - Mainboards & switches (optional interface IServerAdminModHardware)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// A mainboard for the server configurator: a dual-socket board with four PCIe slots for accelerator cards.
+    /// Generation 3 takes the newest CPUs and DDR5 memory (and every older part); MinSize 2 means it fits
+    /// 2U racks and bigger as well as mid/max towers.
+    /// </summary>
+    public IEnumerable<ModMotherboardData> GetMotherboards() => new[]
+    {
+        new ModMotherboardData
+        {
+            Name            = "ExBoard Duo-X",
+            Generation      = 3,
+            Sockets         = 2,
+            PcieSlots       = 4,
+            RamSlots        = 12,
+            DriveConnectors = 8,
+            MaxNicMbps      = 100000,
+            MinSize         = 2,
+            Price           = 7500f,
+            PowerCost       = 0.04f,
+        },
+    };
+
+    /// <summary>A switch model for the network manager: 48 ports at 10 Gbps with a 100 Gbps uplink.</summary>
+    public IEnumerable<ModSwitchModelData> GetSwitchModels() => new[]
+    {
+        new ModSwitchModelData
+        {
+            Name          = "ExSwitch 48x10G",
+            Ports         = 48,
+            PortSpeedMbps = 10000,
+            UplinkMbps    = 100000,
+            Price         = 14000f,
+            PowerCost     = 0.09f,
+        },
+    };
 
     /// <summary>
     /// Server software and hacking tools added by this mod.

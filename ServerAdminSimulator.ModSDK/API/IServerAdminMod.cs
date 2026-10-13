@@ -67,3 +67,17 @@ public interface IServerAdminMod
     /// </summary>
     ModGameHooks GetHooks();
 }
+
+/// <summary>
+/// Optional v4 interface for hardware content. Implement it <b>in addition to</b> <see cref="IServerAdminMod"/>
+/// on the same class to add mainboards and network switch models. It is a separate interface on purpose: mods built
+/// before v4 don't know these methods and keep loading unchanged. Both methods may return null or an empty collection.
+/// Tower chassis need no extra interface - set <see cref="ModServerData.IsTower"/> in <see cref="IServerAdminMod.GetServers"/>.
+/// </summary>
+public interface IServerAdminModHardware
+{
+    /// <summary>Returns mainboards added to the server configurator and the mainboard swap dialog.</summary>
+    IEnumerable<ModMotherboardData> GetMotherboards();
+    /// <summary>Returns switch models added to the network manager shop.</summary>
+    IEnumerable<ModSwitchModelData> GetSwitchModels();
+}

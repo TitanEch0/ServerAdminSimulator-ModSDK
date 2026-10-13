@@ -4,8 +4,8 @@ Official SDK for creating mods for **Server-Admin Simulator** by Ice-Phoenix.
 Reference `ServerAdminSimulator.ModSDK.dll` in your mod project, implement `IServerAdminMod`,
 and drop the compiled DLL into the game's Mods folder.
 
-> **Current API version:** v3.3  
-> **MinGameVersion:** `1.2.0`
+> **Current API version:** v4.0  
+> **MinGameVersion:** `1.3.0` (for the hardware content of v4; everything else works from `1.2.0`)
 
 ---
 
@@ -107,6 +107,15 @@ If you see `"was built against an incompatible IServerAdminMod copy ... loading 
 | `GetLocalization(lang)` | v3 | Translations keyed by language code (`"en"`, `"de"`, …) |
 | `GetHooks()` | v3 | Returns your `ModGameHooks` subclass *(not available in [Compatibility Mode](#compatibility-mode))* |
 
+### Hardware Methods (`IServerAdminModHardware`, optional)
+
+Implement this second interface on the same class to add mainboards and switches — see [Mainboards, Switches & Towers](#mainboards-switches--towers).
+
+| Method | API | Description |
+|---|:---:|---|
+| `GetMotherboards()` | v4 | Mainboards for the server configurator (sockets, RAM slots, PCIe slots, drive connectors, NIC limit) |
+| `GetSwitchModels()` | v4 | Network switch models for the network manager shop |
+
 ### Lifecycle Hooks (`ModGameHooks`)
 
 Extend `ModGameHooks` and override only what you need — all methods are no-ops by default.
@@ -127,6 +136,98 @@ Extend `ModGameHooks` and override only what you need — all methods are no-ops
 | `OnGameOver(gc)` | Game-over condition is reached |
 | `OnGameSaved(slot)` | Game is saved to a slot |
 | `OnGameLoaded(slot)` | A save file is loaded |
+
+---
+
+## Component Upgrade Chains
+
+Each server upgrades one component at a time along a fixed chain — the player never gets a
+free choice of any compatible component, only a single "Upgrade → NextTier ($cost)" button that
+always leads to whatever you designated as the next tier. (An earlier release let players pick
+freely among every compatible component regardless of value, which amounted to letting them
+"upgrade" into something weaker than what was already installed — that's been removed.)
+
+Link tiers together with `ModComponentData.UpgradesFromAssetName`, set on the **higher** tier,
+naming the `AssetName` of the tier it comes after:
+
+```csharp
+new ModComponentData { AssetName = "MyCPU_T1", DisplayName = "MyCorp CPU I",   Value = 4,  UpgradeCost = 500f  },
+new ModComponentData { AssetName = "MyCPU_T2", DisplayName = "MyCorp CPU II",  Value = 8,  UpgradeCost = 1200f, UpgradesFromAssetName = "MyCPU_T1" },
+new ModComponentData { AssetName = "MyCPU_T3", DisplayName = "MyCorp CPU III", Value = 16, UpgradeCost = 2400f, UpgradesFromAssetName = "MyCPU_T2" },
+```
+
+A server running `MyCPU_T1` shows one button, "Upgrade → MyCorp CPU II ($1,200)"; once bought, that
+same button switches to point at `MyCPU_T3`. Leave `UpgradesFromAssetName` empty/null for a root
+tier (nothing upgrades into it — it's only ever a chassis's starting component or a standalone
+item). A tier nothing else names via `UpgradesFromAssetName` is the end of its chain — the button
+shows "MAX" there. You can extend the base game's own hardware chains this way too (e.g. link a new
+`CPU_T11` onto the base game's `CPU_T10`) by naming the existing asset as `UpgradesFromAssetName`.
+
+## Mainboards, Switches & Towers
+
+*Added in v1.3.0 / API v4.*
+
+The game's hardware layer has three more things mods can extend. None of them needs an asset — you describe them in plain data.
+
+### Mainboards
+
+Every server has a mainboard; it decides what the server can carry. Return your own from `GetMotherboards()`:
+
+```csharp
+public class MyMod : IServerAdminMod, IServerAdminModHardware   // second interface, same class
+{
+    public IEnumerable<ModMotherboardData> GetMotherboards() => new[]
+    {
+        new ModMotherboardData
+        {
+            Name = "MyBoard Duo", Generation = 3, Sockets = 2, PcieSlots = 4, RamSlots = 12,
+            DriveConnectors = 8, MaxNicMbps = 100000, MinSize = 2, Price = 7500f, PowerCost = 0.04f,
+        },
+    };
+    // ... GetSwitchModels() and the rest of IServerAdminMod
+}
+```
+
+| Field | Meaning |
+|---|---|
+| `Generation` (1–3) | Which CPU socket (LGA-1…3) and RAM type (DDR3…5) it takes; newer boards also take older parts |
+| `Sockets` (1–8) | How many processors can be installed (cores add up) |
+| `PcieSlots` (0–16) | Slots for accelerator cards (GPUs) |
+| `RamSlots` (1–64) | How many memory modules can be installed |
+| `DriveConnectors` (1–16) | How many drives can be attached (the chassis' bays limit it further) |
+| `MaxNicMbps` | Fastest network card the board can drive |
+| `MinSize` (1–4) | Smallest chassis size class it fits |
+| `Price`, `PowerCost` | Purchase price; power draw per tick (× 1000 = Watts) |
+
+Boards get the next free index, so **saves are bound to the exact mod set** (like any other mod content) — the game already blocks loading a save when a mod is missing.
+Mod components follow the generation rules automatically: a component's generation is derived from its `Value`
+(≤ 16 → gen 1, ≤ 64 → gen 2, above → gen 3).
+
+### Switch models
+
+`GetSwitchModels()` adds models to the network manager shop:
+
+```csharp
+public IEnumerable<ModSwitchModelData> GetSwitchModels() => new[]
+{
+    new ModSwitchModelData { Name = "MySwitch 48x10G", Ports = 48, PortSpeedMbps = 10000, UplinkMbps = 100000, Price = 14000f, PowerCost = 0.09f },
+};
+```
+
+A server's link speed is the smaller of its network card and the switch port; the switch's own uplink limits everything behind it.
+
+### Tower servers
+
+A chassis from `GetServers()` becomes a free-standing tower with `IsTower = true`. It stands on the data center floor
+(not in a rack) and needs a free floor space. `SizeClass` (1 mini, 2 mid, 3 max, up to 4) decides which mainboards fit,
+`DriveBays` (1–8) how many drives it takes:
+
+```csharp
+new ModServerData { AssetName = "MyTower", ServerType = "Workhorse Tower", IsTower = true, SizeClass = 3, DriveBays = 6, PurchaseCost = 6500f /* … */ }
+```
+
+Mod chassis get their default parts from `DefaultCpuAssetName` / `DefaultRamAssetName` / `DefaultNetworkAssetName` /
+`DefaultStorageAssetName` (a name that can't be found falls back to the smallest part of that kind).
 
 ---
 
@@ -152,29 +253,31 @@ new ModComponentData
 }
 ```
 
-The base game's chassis AssetNames are `Chassis_Basic`, `Chassis_T1`, `Chassis_T2`, `Chassis_T3`,
-and `Chassis_Workstation`. When upgrading a server, the player now chooses from every component of
-that type that's currently compatible with the server's chassis — not just a single fixed next
-tier — so this field is what actually differentiates one component from another beyond raw stats.
+The base game's chassis AssetNames are `Chassis_Basic`, `Chassis_T1`, `Chassis_T1_5`, `Chassis_T2`,
+`Chassis_Workstation`, `Chassis_T2_5`, and `Chassis_T3`. This field is checked in addition to the
+upgrade chain above: if the chain's next tier isn't compatible with a server's specific chassis, the
+Upgrade button shows "MAX" there even though the chain itself continues on other chassis.
 
 ### Chassis numeric caps
 
 Independently of `CompatibleChassisTypes`, every chassis also enforces a hard numeric ceiling on
-`ModComponentData.Value` per component type. A component whose `Value` exceeds the target
-chassis's cap for that type is silently left out of the upgrade picker for that chassis — this is
-not an error and won't log anything, so if your components "don't show up," check this table first:
+`ModComponentData.Value` per component type. If a server's chain-next component exceeds the target
+chassis's cap for that type, the Upgrade button shows "MAX" instead — this is not an error and won't
+log anything, so if your component's chain "stops early" on some chassis, check this table first:
 
 | Chassis AssetName     | ServerType label | Max CPU (cores) | Max RAM (GB) | Max Network (Mbps) | Max Storage (GB) |
 |------------------------|-------------------|-----------------:|--------------:|---------------------:|--------------------:|
-| `Chassis_Basic`        | 1U Server          |                8 |             16 |                   500 |                2,000 |
-| `Chassis_T1`           | 1U Server          |                8 |             16 |                   500 |                2,000 |
-| `Chassis_T2`           | 2U Server          |               32 |             32 |                 1,000 |                8,000 |
-| `Chassis_Workstation`  | 2U Server          |               32 |             32 |                 1,000 |                8,000 |
-| `Chassis_T3`           | 4U Server Pro      |              128 |          1,024 |               100,000 |               16,000 |
+| `Chassis_Basic`        | 1U Server          |               32 |             32 |                10,000 |                2,000 |
+| `Chassis_T1`           | 1U Server          |               32 |             32 |                10,000 |                2,000 |
+| `Chassis_T1_5`         | 1U Server Pro      |               48 |             48 |                25,000 |                3,000 |
+| `Chassis_T2`           | 2U Server          |               64 |             64 |                50,000 |                8,000 |
+| `Chassis_Workstation`  | 2U Server          |               64 |             64 |                50,000 |                8,000 |
+| `Chassis_T2_5`         | 3U Server          |               96 |             96 |               100,000 |               12,000 |
+| `Chassis_T3`           | 4U Server Pro      |              128 |          1,024 |               250,000 |               16,000 |
 
 A component only needs to clear the cap of whichever chassis it should actually be installed on —
-e.g. `Value = 64` for a RAM component works fine on `Chassis_T3` (cap 1,024) but will never appear
-as an option on `Chassis_Basic` (cap 16), regardless of what `CompatibleChassisTypes` says.
+e.g. `Value = 64` for a RAM component works fine on `Chassis_T3` (cap 1,024) but will never be
+reachable on `Chassis_Basic` (cap 32), regardless of what `CompatibleChassisTypes` says.
 
 ---
 

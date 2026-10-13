@@ -116,6 +116,68 @@ public class ModServerData
     public string DefaultRamAssetName     = "RAM_T1";
     /// <summary>AssetName of the default Network component pre-installed on this chassis.</summary>
     public string DefaultNetworkAssetName = "Net_T1";
+
+    // ── v4: tower chassis and mainboard fit (all optional - the defaults keep a normal rack chassis) ──
+
+    /// <summary>true = free-standing tower: it stands on the data center floor instead of in a rack and needs a free
+    /// floor space (FormFactor is then ignored for placement). Default false.</summary>
+    public bool   IsTower                 = false;
+    /// <summary>Size class from 1 (compact) to 4 (enterprise). It decides which mainboards physically fit
+    /// (a board has a minimum size class). 0 = derive it from FormFactor (towers: 1 = mini, 2 = mid, 3 = max).</summary>
+    public int    SizeClass               = 0;
+    /// <summary>Number of drive bays, 1-8. 0 = two per rack unit.</summary>
+    public int    DriveBays               = 0;
+}
+
+/// <summary>
+/// A mainboard offered in the server configurator and the mainboard swap dialog (v4).
+/// Return these from <see cref="IServerAdminModHardware.GetMotherboards"/>.
+/// The board decides what a server can carry: CPU socket and RAM generation, how many processors and memory modules,
+/// how many drives, and the fastest network card.
+/// </summary>
+public class ModMotherboardData
+{
+    /// <summary>Display name (also its identity - keep it unique).</summary>
+    public string Name            = "Mod Board";
+    /// <summary>Platform generation 1-3: decides which CPU sockets (LGA-1..3) and RAM types (DDR3..5) it takes.
+    /// Newer boards also take older parts.</summary>
+    public int    Generation      = 2;
+    /// <summary>CPU sockets - how many processors can be installed (1-8).</summary>
+    public int    Sockets         = 1;
+    /// <summary>Expansion slots for accelerator cards (GPUs), 0-16.</summary>
+    public int    PcieSlots       = 1;
+    /// <summary>Memory slots - how many RAM modules can be installed (1-64).</summary>
+    public int    RamSlots        = 4;
+    /// <summary>How many drives can be attached at most (1-16; the chassis' bays limit it further).</summary>
+    public int    DriveConnectors = 4;
+    /// <summary>Fastest network card the board can drive, in Mbps.</summary>
+    public int    MaxNicMbps      = 25000;
+    /// <summary>Smallest chassis size class it physically fits, 1 (compact) to 4 (enterprise).</summary>
+    public int    MinSize         = 1;
+    /// <summary>Purchase price in dollars.</summary>
+    public float  Price           = 1500f;
+    /// <summary>Power draw per simulation tick (x 1000 = Watts).</summary>
+    public float  PowerCost       = 0.015f;
+}
+
+/// <summary>
+/// A network switch model sold in the network manager (v4).
+/// Return these from <see cref="IServerAdminModHardware.GetSwitchModels"/>.
+/// </summary>
+public class ModSwitchModelData
+{
+    /// <summary>Display name (also its identity - keep it unique).</summary>
+    public string Name          = "Mod Switch";
+    /// <summary>Number of ports (server links and downstream uplinks), 2-256.</summary>
+    public int    Ports         = 24;
+    /// <summary>Speed of every port in Mbps - a server's link is limited by it.</summary>
+    public int    PortSpeedMbps = 1000;
+    /// <summary>Capacity of the switch's own uplink in Mbps.</summary>
+    public int    UplinkMbps    = 10000;
+    /// <summary>Purchase price in dollars.</summary>
+    public float  Price         = 1000f;
+    /// <summary>Power draw per simulation tick (x 1000 = Watts).</summary>
+    public float  PowerCost     = 0.02f;
 }
 
 /// <summary>A server software item or hacking tool added by a mod.</summary>
