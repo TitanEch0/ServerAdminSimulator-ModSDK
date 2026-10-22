@@ -281,6 +281,21 @@ reachable on `Chassis_Basic` (cap 32), regardless of what `CompatibleChassisType
 
 ---
 
+## Mods are chosen per save game
+
+Installed mods are not active in every game: a new game asks which mods it should contain, and a save only ever loads the mods it is bound to.
+Mods can be added to a save later but never removed, and the save cannot be played without them. Saves are bound by the manifest's
+`Name` and `Version`, so keep the `Name` stable. `GetManifest()` is read at startup; the content methods only run once the mod is activated for a game.
+
+---
+
+## What mods cannot change
+
+The story campaign belongs to the game: mods can neither add to it nor change it. There is no API for chapters, dialogs or endings,
+translations for story texts (keys starting with `story.`) are ignored, and a contract whose `AssetName` starts with `Story_` is skipped.
+
+---
+
 ## Repository & Issues
 
 Source code, issue tracker, and release packages:  
